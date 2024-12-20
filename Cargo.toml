@@ -1,8 +1,10 @@
 [package]
 name = "net_struct_serde"
+authors = ["jianxun-p"]
 version = "0.1.0"
 edition = "2021"
-authors = ["jianxun-p"]
+description = "serde for network protocols structures."
+license = "MIT"
 
 [dependencies]
 serde = "1"

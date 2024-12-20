@@ -1,15 +1,13 @@
 use std::str::FromStr;
 
-use field::NetStructFieldType;
-use quote::quote;
 use super::*;
+use field::NetStructFieldType;
 use proc_macro2::TokenStream;
+use quote::quote;
 
 const ACC_VAR_NAME: &'static str = "is_same";
 
-
 impl NetStruct {
-
     /**
      * writes the implements of Eq for the NetStruct
      */

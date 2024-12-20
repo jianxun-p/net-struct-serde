@@ -1,6 +1,5 @@
-use syn::*;
 use quote::quote;
-
+use syn::*;
 
 #[test]
 fn test_unambigious() {
@@ -16,7 +15,8 @@ fn test_unambigious() {
             pub vec2: [u8; 8],
             pub field2: u8,
         }
-    }).unwrap();
+    })
+    .unwrap();
     if let syn::Data::Struct(_) = a.data.clone() {
         let net_struct = NetStruct::from(a);
         assert!(net_struct.into().is_err());
@@ -24,4 +24,3 @@ fn test_unambigious() {
         panic!()
     }
 }
-

@@ -26,7 +26,3 @@ pub enum SerdeErr {
     NotSupported,
     ParseFailed,
 }
-
-
-
-

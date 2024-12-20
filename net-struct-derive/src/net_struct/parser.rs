@@ -6,8 +6,7 @@ use super::*;
 use field::NetStructFieldType;
 use proc_macro2::TokenStream;
 use quote::quote;
-use std::collections::{VecDeque, HashMap, HashSet};
-
+use std::collections::{HashMap, HashSet, VecDeque};
 
 struct DeserializeFieldIter {
     net_struct_attrs: NetStructAttr,
@@ -17,9 +16,7 @@ struct DeserializeFieldIter {
     direction: bool,
 }
 
-
 impl DeserializeFieldIter {
-
     fn is_deserializable(&self, field: &Rc<NetStructField>) -> bool {
         let Some(v_f) = self.vec_fields.get(&field.name) else {
             return true;
@@ -35,14 +32,13 @@ impl DeserializeFieldIter {
     pub fn new(net_struct: &NetStruct) -> Self {
         Self {
             net_struct_attrs: net_struct.attrs.clone(),
-            unread_fields: VecDeque::from_iter(net_struct.fields.iter().map(|f|f.clone())),
+            unread_fields: VecDeque::from_iter(net_struct.fields.iter().map(|f| f.clone())),
             read_fields: HashSet::new(),
             vec_fields: net_struct.find_all_vec_fields(),
             direction: true,
         }
     }
 }
-
 
 impl std::iter::Iterator for DeserializeFieldIter {
     type Item = Result<(Rc<NetStructField>, bool), DeriveErr>;
@@ -51,7 +47,10 @@ impl std::iter::Iterator for DeserializeFieldIter {
      * Take one field from the VecDeque and returns it with a bool that indicate if the direction has changed
      */
     fn next(&mut self) -> Option<Self::Item> {
-        let (front, back) = (self.unread_fields.front()?.clone(), self.unread_fields.back()?.clone());
+        let (front, back) = (
+            self.unread_fields.front()?.clone(),
+            self.unread_fields.back()?.clone(),
+        );
         if !self.is_deserializable(&front) && !self.is_deserializable(&back) {
             return Some(Err(DeriveErr::AmbigiousDeserialize(format!(
                 "Unable to deserialize the structure unambigiously from either direction. \n\t\tfront: \"{}\", back: \"{}\"", 
@@ -66,12 +65,12 @@ impl std::iter::Iterator for DeserializeFieldIter {
             true => {
                 self.read_fields.insert(field.name.clone());
                 false
-            },
+            }
             false => {
                 self.read_fields.insert(other_field.name.clone());
                 self.direction = !self.direction;
                 true
-            },
+            }
         };
         match self.direction {
             true => Some(Ok((self.unread_fields.pop_front()?, direction_changed))),
@@ -80,9 +79,7 @@ impl std::iter::Iterator for DeserializeFieldIter {
     }
 }
 
-
 impl NetStruct {
-
     const UNINIT_STRUCT_VAR: &'static str = "s";
 
     fn truncate_size(&self) -> TokenStream {
@@ -98,11 +95,10 @@ impl NetStruct {
         }
     }
 
-
     fn deserialize_one_field(
-        &self, 
-        field: Rc<NetStructField>, 
-        direction_changed: bool, 
+        &self,
+        field: Rc<NetStructField>,
+        direction_changed: bool,
         vec_fields: HashMap<String, VecField>,
     ) -> TokenStream {
         let var = TokenStream::from_str(Self::UNINIT_STRUCT_VAR).unwrap();
@@ -138,7 +134,6 @@ impl NetStruct {
         ts
     }
 
-
     fn deserialize_fields(&self) -> Result<TokenStream, DeriveErr> {
         let field_iter = DeserializeFieldIter::new(self);
         let mut ts = TokenStream::new();
@@ -148,7 +143,6 @@ impl NetStruct {
         }
         Ok(ts)
     }
-
 
     /**
      * writes the implements of Deserialize for the NetStruct
@@ -161,7 +155,7 @@ impl NetStruct {
         Ok(quote! {
             impl net_struct_serde::traits::Deserialize for #struct_name {
                 fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-                    where D: net_struct_serde::traits::Deserializer 
+                    where D: net_struct_serde::traits::Deserializer
                 {
                     let mut #var = core::mem::MaybeUninit::<#struct_name>::uninit();
                     unsafe {

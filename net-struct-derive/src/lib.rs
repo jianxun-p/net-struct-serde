@@ -40,16 +40,14 @@ pub fn derive_net_struct(item: proc_macro::TokenStream) -> proc_macro::TokenStre
                     proc_macro::TokenStream::from(ts)
                 }
                 Err(e) => match e {
-                    err::DeriveErr::AmbigiousDeserialize(msg) => 
-                        panic!("Error: Ambigiouity with the Deserialize implementation {}", msg),
+                    err::DeriveErr::AmbigiousDeserialize(msg) => panic!(
+                        "Error: Ambigiouity with the Deserialize implementation {}",
+                        msg
+                    ),
                 },
             }
-        },
+        }
         syn::Data::Union(_) => unimplemented!("No support for union typed"),
         _ => todo!("Only supports Struct typed for now"),
     }
 }
-
-
-
-

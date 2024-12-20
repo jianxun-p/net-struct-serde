@@ -1,13 +1,13 @@
+mod cmp;
 mod field;
 mod parser;
 mod serializer;
-mod cmp;
-use std::{collections::HashMap, rc::Rc};
-use proc_macro2::{Delimiter, TokenStream};
-use quote::quote;
-use syn::{DeriveInput, Data};
 use crate::{err::DeriveErr, helper::*};
 use field::{FieldAttr, NetStructField, SizeUnit, VecField};
+use proc_macro2::{Delimiter, TokenStream};
+use quote::quote;
+use std::{collections::HashMap, rc::Rc};
+use syn::{Data, DeriveInput};
 
 #[derive(Clone)]
 pub(super) struct NetStruct {
@@ -24,7 +24,6 @@ pub(super) struct NetStructAttr {
 const ATTR_PATH: &'static str = "net_struct";
 const STRUCT_SIZE_PATH: &'static str = "struct_len";
 
-
 impl std::cmp::PartialEq for NetStruct {
     fn eq(&self, other: &Self) -> bool {
         self.derive_input.ident.to_string() == other.derive_input.ident.to_string()
@@ -32,19 +31,19 @@ impl std::cmp::PartialEq for NetStruct {
 }
 impl std::cmp::Eq for NetStruct {}
 
-
 fn parse_attr<F: FnMut(&proc_macro2::TokenStream)>(attrs: &Vec<syn::Attribute>, mut f: F) {
     for attr in attrs {
         if let syn::Meta::List(meta_list) = &attr.meta {
-            assert!(meta_list.path.is_ident(ATTR_PATH), "Expected \"net_struct\"");
+            assert!(
+                meta_list.path.is_ident(ATTR_PATH),
+                "Expected \"net_struct\""
+            );
             f(&meta_list.tokens);
         }
     }
 }
 
-
 impl NetStruct {
-
     fn find_field_from_name(&self, name: String) -> Option<Rc<NetStructField>> {
         self.fields
             .iter()
@@ -53,52 +52,65 @@ impl NetStruct {
     }
 
     fn find_all_vec_fields(&self) -> HashMap<String, VecField> {
-        fn get_vec_length(f: &Rc<NetStructField>) -> Option<(Rc<NetStructField>, String, SizeUnit)> {
-            f.net_struct_attr
-                .iter()
-                .find_map(|attr| match attr {
-                    FieldAttr::VecSize { vec_len_field: v, unit: u,} => Some((f.clone(), v.clone(), u.clone())),
-                })
+        fn get_vec_length(
+            f: &Rc<NetStructField>,
+        ) -> Option<(Rc<NetStructField>, String, SizeUnit)> {
+            f.net_struct_attr.iter().find_map(|attr| match attr {
+                FieldAttr::Vec {
+                    vec_len_field: v,
+                    unit: u,
+                } => Some((f.clone(), v.clone(), u.clone())),
+            })
         }
-        HashMap::from_iter(
-            self.fields
-            .iter()
-            .filter_map(|f| get_vec_length(f))
-            .map(|(data_field, l_f, len_unit)| 
-                (data_field.name.clone(), VecField { _data_field: data_field, len_field: self.find_field_from_name(l_f).unwrap(), len_unit,}))
-        )
+        HashMap::from_iter(self.fields.iter().filter_map(|f| get_vec_length(f)).map(
+            |(data_field, l_f, len_unit)| {
+                (
+                    data_field.name.clone(),
+                    VecField {
+                        _data_field: data_field,
+                        len_field: self.find_field_from_name(l_f).unwrap(),
+                        len_unit,
+                    },
+                )
+            },
+        ))
     }
 
     fn parse_attr_struct_len(&mut self, ts: &TokenStream) -> String {
-        let expect_group_msg = format!("Expected parenthesis with arguments after \"{}\"", STRUCT_SIZE_PATH);
+        let expect_group_msg = format!(
+            "Expected parenthesis with arguments after \"{}\"",
+            STRUCT_SIZE_PATH
+        );
         let expect_attr_name_msg = format!("Expected identifier \"{}\"", STRUCT_SIZE_PATH);
         let expect_field_name_msg = format!("Expected a field name for \"{}\"", STRUCT_SIZE_PATH);
         const NO_SUCH_FIELD_MSG: &'static str = "specified field for struct_len is not found";
-    
+
         let mut it = ts.clone().into_iter();
         assert_eq!(
-            expect_ident(&mut it, expect_attr_name_msg.as_str()), 
+            expect_ident(&mut it, expect_attr_name_msg.as_str()),
             String::from(STRUCT_SIZE_PATH),
-            "{}", expect_attr_name_msg.as_str(),
+            "{}",
+            expect_attr_name_msg.as_str(),
         );
-        let mut arg_it = expect_group(&mut it, Delimiter::Parenthesis, expect_group_msg.as_str()).into_iter().peekable();
+        let mut arg_it = expect_group(&mut it, Delimiter::Parenthesis, expect_group_msg.as_str())
+            .into_iter()
+            .peekable();
         let struct_len_field_name = expect_ident(&mut arg_it, expect_field_name_msg.as_str());
         consume_punct(&mut arg_it, ',');
-        
+
         let len_unit = consume_ident(&mut arg_it)
             .map(|s| SizeUnit::from(s))
             .unwrap_or(SizeUnit::BYTES);
 
-        let net_struct_len_field = self.fields
+        let net_struct_len_field = self
+            .fields
             .iter()
             .find(|f| f.name == struct_len_field_name)
             .expect(NO_SUCH_FIELD_MSG);
         self.attrs.struct_len = Some((net_struct_len_field.clone(), len_unit));
         struct_len_field_name
     }
-
 }
-
 
 impl From<DeriveInput> for NetStruct {
     fn from(di: DeriveInput) -> Self {
@@ -107,14 +119,19 @@ impl From<DeriveInput> for NetStruct {
         };
         let mut ns = Self {
             derive_input: di.clone(),
-            fields: ds.fields.iter().map(|f| Rc::new(NetStructField::from(f))).collect(),
-            attrs: NetStructAttr { struct_len: None, },
+            fields: ds
+                .fields
+                .iter()
+                .map(|f| Rc::new(NetStructField::from(f)))
+                .collect(),
+            attrs: NetStructAttr { struct_len: None },
         };
-        parse_attr(&di.attrs, |tokens| {ns.parse_attr_struct_len(tokens);});
+        parse_attr(&di.attrs, |tokens| {
+            ns.parse_attr_struct_len(tokens);
+        });
         ns
     }
 }
-
 
 impl Into<Result<TokenStream, DeriveErr>> for NetStruct {
     fn into(self) -> Result<TokenStream, DeriveErr> {

@@ -6,7 +6,7 @@ impl<'a> NetStructSerializer<'a> {
     pub fn new(buf: &'a mut [u8]) -> Self {
         Self { buf, len: 0 }
     }
-    
+
     pub fn finalize(self) -> usize {
         self.len
     }

@@ -49,7 +49,11 @@ pub trait Deserializer: Sized {
         field_name: &'static str,
     ) -> Result<Self, Self::Error>;
 
-    fn deserialize_seq<E: Deserialize, S: AsMut<[E]>>(self, s: S, len: usize) -> Result<Self, Self::Error>;
+    fn deserialize_seq<E: Deserialize, S: AsMut<[E]>>(
+        self,
+        s: S,
+        len: usize,
+    ) -> Result<Self, Self::Error>;
 
     fn deserialize_variant<V: Deserialize>(self, variant: &mut V) -> Result<Self, Self::Error>;
 }
@@ -69,7 +73,4 @@ pub trait Deserialize: Sized {
         D: Deserializer;
 }
 
-pub trait NetStruct: serde::ser::Serialize + crate::traits::Deserialize + core::cmp::Eq {
-    
-}
-
+pub trait NetStruct: serde::ser::Serialize + crate::traits::Deserialize + core::cmp::Eq {}

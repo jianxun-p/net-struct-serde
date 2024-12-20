@@ -26,7 +26,9 @@ fn reverse2() {
         arr1: [13, 17, 19, 23],
         field2: 7,
     };
-    const CORRECT_SERIALIZED: [u8; 18] = [99, 0, 4, 0, 5, 0, 6, 0, 3, 255, 254, 253, 6, 13, 17, 19, 23, 7];
+    const CORRECT_SERIALIZED: [u8; 18] = [
+        99, 0, 4, 0, 5, 0, 6, 0, 3, 255, 254, 253, 6, 13, 17, 19, 23, 7,
+    ];
     let mut serialized = [0u8; CORRECT_SERIALIZED.len()];
     let mut serializer = net_struct_serde::NetStructSerializer::new(&mut serialized);
     S.serialize(&mut serializer).unwrap();

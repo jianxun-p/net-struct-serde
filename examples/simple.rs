@@ -1,10 +1,9 @@
 use net_struct_derive::NetStruct;
-use serde::Serialize;
 use net_struct_serde::traits::*;
+use serde::Serialize;
 
 #[derive(Debug, Clone, NetStruct)]
 pub(self) struct SimpleStruct {
-    // pub size: u8,
     pub x: u8,
     pub y: i8,
     #[net_struct(struct_len(x, len))]
@@ -30,9 +29,13 @@ fn main() {
     let mut serializer = net_struct_serde::NetStructSerializer::new(&mut serialized);
     SIMPLE_STRUCT.serialize(&mut serializer).unwrap();
     let serialized_size = serializer.finalize();
-    assert_eq!(&serialized[..serialized_size], &CORRECT_SERIALIZED[..serialized_size]);
+    assert_eq!(
+        &serialized[..serialized_size],
+        &CORRECT_SERIALIZED[..serialized_size]
+    );
     println!("serialized: {serialized:?}");
-    let mut deserializer = net_struct_serde::NetStructDeserializer::new(CORRECT_SERIALIZED.as_slice());
+    let mut deserializer =
+        net_struct_serde::NetStructDeserializer::new(CORRECT_SERIALIZED.as_slice());
     let deserialized = SimpleStruct::deserialize(&mut deserializer).unwrap();
     assert_eq!(SIMPLE_STRUCT, deserialized);
     dbg!(deserialized);

@@ -1,12 +1,18 @@
-use crate::{flavour::NoFlavour, traits::{Deserialize, Deserializer, Flavour, StructDeserializer}, NetStructDeserializer, SerdeErr};
-
+use crate::{
+    flavour::NoFlavour,
+    traits::{Deserialize, Deserializer, Flavour, StructDeserializer},
+    NetStructDeserializer, SerdeErr,
+};
 
 impl<'a> NetStructDeserializer<'a> {
     pub fn new(buf: &'a [u8]) -> Self {
-        Self {dir: true, init_count: buf.len(), buf: buf}
+        Self {
+            dir: true,
+            init_count: buf.len(),
+            buf: buf,
+        }
     }
 }
-
 
 macro_rules! deserialize_primty {
     ($s:ident, $primty:ty, $v:ident) => {
@@ -31,7 +37,6 @@ macro_rules! deserialize_primty {
     };
 }
 
-
 impl Deserializer for &mut NetStructDeserializer<'_> {
     type Error = SerdeErr;
 
@@ -47,14 +52,17 @@ impl Deserializer for &mut NetStructDeserializer<'_> {
 
     #[inline]
     fn take<B: AsMut<[u8]>>(mut self, buf: &mut B) -> Result<Self, <Self as Deserializer>::Error> {
-        let b = buf.as_mut(); 
+        let b = buf.as_mut();
         self = self.expect(b.len())?;
         let (b1, b2) = match self.dir {
             true => (&self.buf[..b.len()], &self.buf[b.len()..]),
-            false => (&self.buf[(self.buf.len() - b.len())..], &self.buf[..(self.buf.len() - b.len())]),
+            false => (
+                &self.buf[(self.buf.len() - b.len())..],
+                &self.buf[..(self.buf.len() - b.len())],
+            ),
         };
         b.copy_from_slice(b1);
-        self.buf = b2; 
+        self.buf = b2;
         Ok(self)
     }
 
@@ -67,7 +75,7 @@ impl Deserializer for &mut NetStructDeserializer<'_> {
                     false => &self.buf[(self.buf.len() - len)..],
                 };
                 Ok(self)
-            },
+            }
             false => Err(SerdeErr::Eof),
         }
     }
@@ -177,14 +185,33 @@ impl Deserializer for &mut NetStructDeserializer<'_> {
                 for i in 0..len {
                     arr[i] = E::deserialize(&mut *self)?;
                 }
-            },
+            }
             false => {
                 for i in (0..len).rev() {
                     arr[i] = E::deserialize(&mut *self)?;
                 }
-            },
+            }
         };
-        
+        Ok(self)
+    }
+
+    fn deserialize_seq_until_end<E: Deserialize, S: AsMut<[E]>>(
+        self,
+        mut s: S,
+        len: &mut usize,
+        len_adj: impl Fn(usize) -> usize,
+    ) -> Result<Self, Self::Error> {
+        *len = 0;
+        let arr = s.as_mut();
+        while arr.len() >= *len + 1 {
+            if let Ok(val) = E::deserialize(&mut *self) {
+                arr[*len] = val;
+                *len += 1;
+            } else {
+                break;
+            }
+        }
+        *len = len_adj(*len);
         Ok(self)
     }
 
@@ -198,9 +225,9 @@ impl Deserializer for &mut NetStructDeserializer<'_> {
     }
 }
 
-
-impl<'a, 'b: 'a> StructDeserializer<&'a mut NetStructDeserializer<'b>> for &'a mut NetStructDeserializer<'b> {
-    
+impl<'a, 'b: 'a> StructDeserializer<&'a mut NetStructDeserializer<'b>>
+    for &'a mut NetStructDeserializer<'b>
+{
     #[inline]
     fn deserialize_field<E: Deserialize>(
         self,
@@ -210,7 +237,7 @@ impl<'a, 'b: 'a> StructDeserializer<&'a mut NetStructDeserializer<'b>> for &'a m
         *field = <E as Deserialize>::deserialize(&mut *self)?;
         Ok(self)
     }
-    
+
     #[inline]
     fn struct_end(self) -> Result<Self, <Self as Deserializer>::Error> {
         Ok(self)
@@ -219,10 +246,10 @@ impl<'a, 'b: 'a> StructDeserializer<&'a mut NetStructDeserializer<'b>> for &'a m
 
 macro_rules! impl_deserialize_for_primty {
     ($primty:ty) => {
-        impl Deserialize for $primty { 
-
+        impl Deserialize for $primty {
             fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-                where D: Deserializer
+            where
+                D: Deserializer,
             {
                 const SIZE: usize = core::mem::size_of::<$primty>();
                 unsafe {
@@ -247,11 +274,10 @@ impl_deserialize_for_primty!(u64);
 impl_deserialize_for_primty!(f32);
 impl_deserialize_for_primty!(f64);
 
-
-impl<T: Deserialize> Deserialize for Option<T> { 
-
+impl<T: Deserialize> Deserialize for Option<T> {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where D: Deserializer
+    where
+        D: Deserializer,
     {
         match deserializer.expect(1) {
             Ok(deserializer) => Ok(Some(T::deserialize(deserializer)?)),
@@ -260,12 +286,11 @@ impl<T: Deserialize> Deserialize for Option<T> {
     }
 }
 
-
 #[cfg(test)]
 mod test {
     use super::NetStructDeserializer;
-    use crate::SerdeErr;
     use crate::traits::*;
+    use crate::SerdeErr;
 
     #[test]
     fn primint1() {
@@ -284,19 +309,20 @@ mod test {
         impl Deserialize for St {
             fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
             where
-                D: Deserializer {
-                    let mut s = core::mem::MaybeUninit::<St>::uninit();
-                    unsafe {
-                        deserializer
-                            .deserialize_i32(&mut (*s.as_mut_ptr()).x)?
-                            .deserialize_i16(&mut (*s.as_mut_ptr()).y)?;
-                        Ok(s.assume_init())
-                    }
+                D: Deserializer,
+            {
+                let mut s = core::mem::MaybeUninit::<St>::uninit();
+                unsafe {
+                    deserializer
+                        .deserialize_i32(&mut (*s.as_mut_ptr()).x)?
+                        .deserialize_i16(&mut (*s.as_mut_ptr()).y)?;
+                    Ok(s.assume_init())
+                }
             }
         }
-        let a: [u8; 6] = [0x00, 0x00, 0x00, 0x01, 0x00, 0x02,];
+        let a: [u8; 6] = [0x00, 0x00, 0x00, 0x01, 0x00, 0x02];
         let mut nsd = NetStructDeserializer::new(a.as_slice());
-        assert_eq!(St::deserialize(&mut nsd), Ok(St{x: 1, y: 2}));
+        assert_eq!(St::deserialize(&mut nsd), Ok(St { x: 1, y: 2 }));
     }
 
     #[test]
@@ -309,19 +335,29 @@ mod test {
         impl Deserialize for St {
             fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
             where
-                D: Deserializer {
-                    let mut s = core::mem::MaybeUninit::<St>::uninit();
-                    unsafe {
-                        deserializer
-                            .deserialize_i32(&mut (*s.as_mut_ptr()).l)?
-                            .deserialize_seq(&mut (*s.as_mut_ptr()).arr, (*s.as_mut_ptr()).l as usize)?;
-                        Ok(s.assume_init())
-                    }
+                D: Deserializer,
+            {
+                let mut s = core::mem::MaybeUninit::<St>::uninit();
+                unsafe {
+                    deserializer
+                        .deserialize_i32(&mut (*s.as_mut_ptr()).l)?
+                        .deserialize_seq(
+                            &mut (*s.as_mut_ptr()).arr,
+                            (*s.as_mut_ptr()).l as usize,
+                        )?;
+                    Ok(s.assume_init())
+                }
             }
         }
-        let a: [u8; 6] = [0x00, 0x00, 0x00, 0x02, 0x03, 0x07,];
+        let a: [u8; 6] = [0x00, 0x00, 0x00, 0x02, 0x03, 0x07];
         let mut nsd = NetStructDeserializer::new(a.as_slice());
-        assert_eq!(St::deserialize(&mut nsd), Ok(St{l: 2, arr: [3, 7, 0, 0, 0, 0, 0, 0]}));
+        assert_eq!(
+            St::deserialize(&mut nsd),
+            Ok(St {
+                l: 2,
+                arr: [3, 7, 0, 0, 0, 0, 0, 0]
+            })
+        );
     }
 
     #[test]
@@ -336,23 +372,32 @@ mod test {
         impl Deserialize for St {
             fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
             where
-                D: Deserializer {
-                    let mut s = core::mem::MaybeUninit::<St>::uninit();
-                    unsafe {
-                        deserializer
-                            .deserialize_u8(&mut (*s.as_mut_ptr()).x)?
-                            .reverse()?
-                            .deserialize_i32(&mut (*s.as_mut_ptr()).l)?
-                            .deserialize_seq(&mut (*s.as_mut_ptr()).arr, (*s.as_mut_ptr()).l as usize)?
-                            .reverse()?
-                            .deserialize_i16(&mut (*s.as_mut_ptr()).y)?;
-                        Ok(s.assume_init())
-                    }
+                D: Deserializer,
+            {
+                let mut s = core::mem::MaybeUninit::<St>::uninit();
+                unsafe {
+                    deserializer
+                        .deserialize_u8(&mut (*s.as_mut_ptr()).x)?
+                        .reverse()?
+                        .deserialize_i32(&mut (*s.as_mut_ptr()).l)?
+                        .deserialize_seq(&mut (*s.as_mut_ptr()).arr, (*s.as_mut_ptr()).l as usize)?
+                        .reverse()?
+                        .deserialize_i16(&mut (*s.as_mut_ptr()).y)?;
+                    Ok(s.assume_init())
+                }
             }
         }
-        let a = [21, 0, 11, 0x03, 0x05, 0x07, 0x00, 0x00, 0x00, 0x03,];
+        let a = [21, 0, 11, 0x03, 0x05, 0x07, 0x00, 0x00, 0x00, 0x03];
         let mut nsd = NetStructDeserializer::new(a.as_slice());
-        assert_eq!(St::deserialize(&mut nsd), Ok(St{x: 21, y: 11, l: 3, arr: [3, 5, 7, 0, 0, 0, 0, 0]}));
+        assert_eq!(
+            St::deserialize(&mut nsd),
+            Ok(St {
+                x: 21,
+                y: 11,
+                l: 3,
+                arr: [3, 5, 7, 0, 0, 0, 0, 0]
+            })
+        );
     }
 
     #[test]
@@ -364,17 +409,25 @@ mod test {
         impl Deserialize for St {
             fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
             where
-                D: Deserializer {
-                    let mut st = core::mem::MaybeUninit::<St>::uninit();
+                D: Deserializer,
+            {
+                let mut st = core::mem::MaybeUninit::<St>::uninit();
                 unsafe {
                     deserializer.deserialize_seq(&mut (*st.as_mut_ptr()).arr, 3)?;
                     Ok(st.assume_init())
                 }
             }
         }
-        let a: [u8; 12] = [0x00, 0x00, 0x00, 0x01, 0x00, 0x02, 0x00, 0x00, 0x00, 0x03, 0x00, 0x04,];
+        let a: [u8; 12] = [
+            0x00, 0x00, 0x00, 0x01, 0x00, 0x02, 0x00, 0x00, 0x00, 0x03, 0x00, 0x04,
+        ];
         let mut nsd = NetStructDeserializer::new(a.as_slice());
-        assert_eq!(St::deserialize(&mut nsd), Ok(St{arr: [1, 0x020000, 0x030004]}));
+        assert_eq!(
+            St::deserialize(&mut nsd),
+            Ok(St {
+                arr: [1, 0x020000, 0x030004]
+            })
+        );
     }
 
     #[test]
@@ -387,14 +440,10 @@ mod test {
         assert_eq!(Option::<u16>::deserialize(&mut nsd), Ok(None));
     }
 
-
     #[test]
     fn eof1() {
         let a: [u8; 2] = [0x01, 0x02];
         let mut nsd = NetStructDeserializer::new(a.as_slice());
         assert_eq!(u32::deserialize(&mut nsd), Err(SerdeErr::Eof));
     }
-
 }
-
-

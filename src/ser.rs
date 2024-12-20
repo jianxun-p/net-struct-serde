@@ -6,7 +6,7 @@ impl<'a> NetStructSerializer<'a> {
     pub fn new(buf: &'a mut [u8]) -> Self {
         Self { buf, len: 0 }
     }
-    
+
     pub fn finalize(self) -> usize {
         self.len
     }
@@ -105,13 +105,13 @@ impl<'a> Serializer for &mut NetStructSerializer<'a> {
     }
 
     fn serialize_bytes(self, v: &[u8]) -> Result<Self::Ok, Self::Error> {
-        match self.buf.len() >= v.len() {
+        match self.buf.len() >= v.len() + self.len {
             true => {
                 let mut seq = self.serialize_seq(Some(v.len()))?;
                 for b in v {
                     SerializeSeq::serialize_element(&mut seq, b)?;
                 }
-                Ok(())
+                SerializeSeq::end(seq)
             }
             false => Err(SerdeErr::NotEnoughSpace),
         }

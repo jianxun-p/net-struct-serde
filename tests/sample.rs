@@ -1,7 +1,7 @@
 // use heapless;
 use net_struct_derive::NetStruct;
-use serde::Serialize;
 use net_struct_serde::traits::Deserialize;
+use serde::Serialize;
 
 #[derive(Copy, Clone, Debug, NetStruct)]
 pub struct OtherStruct {
@@ -32,7 +32,9 @@ fn sample() {
         vec1_bytes: 6,
         vec1: [4, 5, 6, 7, 8, 9, 10, 11],
         vec2_bits: 8,
-        vec2: [73, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75,],
+        vec2: [
+            73, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75,
+        ],
         vec3_len: 2,
         vec3: [
             OtherStruct { x: 11, y: 13 },
@@ -41,7 +43,9 @@ fn sample() {
             OtherStruct { x: 37, y: 51 },
         ],
     };
-    const CORRECT_SERIALIZED: [u8; 24] = [99, 1, 2, 3, 4, 6, 0, 4, 0, 5, 0, 6, 0, 0, 0, 8, 73, 2, 11, 13, 17, 19, 0, 0];
+    const CORRECT_SERIALIZED: [u8; 24] = [
+        99, 1, 2, 3, 4, 6, 0, 4, 0, 5, 0, 6, 0, 0, 0, 8, 73, 2, 11, 13, 17, 19, 0, 0,
+    ];
     let mut serialized = [0u8; CORRECT_SERIALIZED.len()];
     let mut serializer = net_struct_serde::NetStructSerializer::new(&mut serialized);
     S.serialize(&mut serializer).unwrap();

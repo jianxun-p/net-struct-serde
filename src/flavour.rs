@@ -1,4 +1,4 @@
-use crate::traits::{Flavour, Deserializer};
+use crate::traits::{Deserializer, Flavour};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct NoFlavour<D: Deserializer>(core::marker::PhantomData<D>);

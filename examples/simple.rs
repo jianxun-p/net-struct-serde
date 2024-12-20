@@ -4,7 +4,6 @@ use serde::Serialize;
 
 #[derive(Debug, Clone, NetStruct)]
 pub(self) struct SimpleStruct {
-    // pub size: u8,
     pub x: u8,
     pub y: i8,
     #[net_struct(struct_len(x, len))]

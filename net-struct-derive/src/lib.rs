@@ -44,6 +44,10 @@ pub fn derive_net_struct(item: proc_macro::TokenStream) -> proc_macro::TokenStre
                         "Error: Ambigiouity with the Deserialize implementation {}",
                         msg
                     ),
+                    err::DeriveErr::Custoum(msg) => panic!(
+                        "Error: {}",
+                        msg
+                    ),
                 },
             }
         }

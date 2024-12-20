@@ -192,7 +192,26 @@ impl Deserializer for &mut NetStructDeserializer<'_> {
                 }
             }
         };
+        Ok(self)
+    }
 
+    fn deserialize_seq_until_end<E: Deserialize, S: AsMut<[E]>>(
+        self,
+        mut s: S,
+        len: &mut usize,
+        len_adj: impl Fn(usize) -> usize,
+    ) -> Result<Self, Self::Error> {
+        *len = 0;
+        let arr = s.as_mut();
+        while arr.len() >= *len + 1 {
+            if let Ok(val) = E::deserialize(&mut *self) {
+                arr[*len] = val;
+                *len += 1;
+            } else {
+                break;
+            }
+        }
+        *len = len_adj(*len);
         Ok(self)
     }
 

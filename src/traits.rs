@@ -55,6 +55,13 @@ pub trait Deserializer: Sized {
         len: usize,
     ) -> Result<Self, Self::Error>;
 
+    fn deserialize_seq_until_end<E: Deserialize, S: AsMut<[E]>>(
+        self,
+        s: S,
+        len: &mut usize,
+        len_adj: impl Fn(usize) -> usize,
+    ) -> Result<Self, Self::Error>;
+
     fn deserialize_variant<V: Deserialize>(self, variant: &mut V) -> Result<Self, Self::Error>;
 }
 

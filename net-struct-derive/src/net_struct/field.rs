@@ -3,7 +3,8 @@ use proc_macro2::Delimiter;
 use quote::ToTokens;
 use std::collections::BTreeMap;
 
-const VEC_LEN_ATTR_PATH: &'static str = "vec";
+const VEC_LEN_ATTR_PATH: &'static str = "vec_len";
+const PHANTOM_ATTR_PATH: &'static str = "phantom";
 
 static SIZE_UNIT_MAP: std::sync::OnceLock<BTreeMap<String, SizeUnit>> = std::sync::OnceLock::new();
 fn size_unit_map() -> &'static BTreeMap<String, SizeUnit> {
@@ -31,12 +32,14 @@ pub(super) enum FieldAttr {
         vec_len_field: String,
         unit: SizeUnit,
     },
+    Phantom,
 }
 
 #[derive(Debug, Clone)]
 pub(super) enum NetStructFieldType {
     Val { ty: TokenStream },
     Arr { ty: TokenStream, capacity: String }, // fixed size array
+    Vec { ty: TokenStream, capacity: String }, // vector
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
@@ -86,10 +89,17 @@ impl From<&syn::Field> for NetStructField {
                 syn::Type::Path(ty) => NetStructFieldType::Val {
                     ty: ty.path.to_token_stream(),
                 },
-                _ => unimplemented!("only support Array(vec) or Path typed fields"),
+                _ => unimplemented!("only support Array(vector) or Path typed fields"),
             },
         };
         parse_attr(&field.attrs, |ts| s.parse_attr_vec_len(ts));
+        parse_attr(&field.attrs, |ts| s.parse_attr_phantom(ts));
+        if s.is_vec() {
+            let NetStructFieldType::Arr { ty, capacity } = s.ty else {
+                panic!("Since this field is a vector, expected type to have an initial value of NetStructFieldType::Arr")
+            };
+            s.ty = NetStructFieldType::Vec { ty: ty, capacity: capacity }
+        }
         s
     }
 }
@@ -103,9 +113,36 @@ impl NetStructField {
                     vec_len_field: _,
                     unit: _,
                 } => true,
+                _ => false,
             })
             .is_some()
     }
+
+    pub(super) fn is_phantom(&self) -> bool {
+        self.net_struct_attr
+            .iter()
+            .find(|attr| match attr {
+                FieldAttr::Phantom => true,
+                _ => false,
+            })
+            .is_some()
+    }
+
+    fn parse_attr_phantom(&mut self, ts: &TokenStream) {
+        let phantom_attr = String::from(PHANTOM_ATTR_PATH);
+        let expect_attr_name_msg = format!("Expected identifier \"{}\"", PHANTOM_ATTR_PATH);
+        let mut it = ts.clone().into_iter().peekable();
+        while it.peek().is_some() {
+            if phantom_attr != expect_ident(&mut it, expect_attr_name_msg.as_str()) {
+                it = skip_until_punct(&mut it, ',');
+                if it.next().is_none() {
+                    break;
+                }
+            }
+            self.net_struct_attr.push(FieldAttr::Phantom);
+        }        
+    }
+
 
     fn parse_attr_vec_len(&mut self, ts: &TokenStream) {
         let vec_len_attr = String::from(VEC_LEN_ATTR_PATH);
@@ -140,4 +177,7 @@ impl NetStructField {
             });
         }
     }
+
+
+
 }

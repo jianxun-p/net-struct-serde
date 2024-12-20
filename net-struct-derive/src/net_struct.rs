@@ -60,6 +60,7 @@ impl NetStruct {
                     vec_len_field: v,
                     unit: u,
                 } => Some((f.clone(), v.clone(), u.clone())),
+                _ => None,
             })
         }
         HashMap::from_iter(self.fields.iter().filter_map(|f| get_vec_length(f)).map(

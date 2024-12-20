@@ -1,10 +1,10 @@
-use core::fmt::Debug;
+pub use serde::{Serialize, Serializer};
 
-pub trait Flavour<D: Deserializer>: Sized + Debug {
+pub trait Flavour<D: Deserializer>: Sized {
     fn flavour<T>(val: T) -> Result<T, D::Error>;
 }
 
-pub trait Deserializer: Sized + Debug {
+pub trait Deserializer: Sized {
     type Error;
 
     type F: Flavour<Self>;
@@ -54,7 +54,7 @@ pub trait Deserializer: Sized + Debug {
     fn deserialize_variant<V: Deserialize>(self, variant: &mut V) -> Result<Self, Self::Error>;
 }
 
-pub trait StructDeserializer<D: Deserializer>: Sized + Debug {
+pub trait StructDeserializer<D: Deserializer>: Sized {
     fn deserialize_field<F: Deserialize>(
         self,
         field: &mut F,
@@ -63,7 +63,7 @@ pub trait StructDeserializer<D: Deserializer>: Sized + Debug {
     fn struct_end(self) -> Result<D, D::Error>;
 }
 
-pub trait Deserialize: Sized + Debug {
+pub trait Deserialize: Sized {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer;

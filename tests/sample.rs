@@ -13,14 +13,14 @@ pub struct OtherStruct {
 pub struct StructName {
     pub field1: u8,
     pub arr1: [u8; 4],
-    #[net_struct(field_vec_len(vec1, bytes))]
     pub vec1_bytes: u8,
+    #[net_struct(vec_len(vec1_bytes, bytes))]
     pub vec1: [u16; 8],
-    #[net_struct(field_vec_len(vec2, bits))]
     pub vec2_bits: u32,
+    #[net_struct(vec_len(vec2_bits, bits))]
     pub vec2: [u8; 16],
-    #[net_struct(field_vec_len(vec3, len))]
     pub vec3_len: u8,
+    #[net_struct(vec_len(vec3_len, len))]
     pub vec3: [OtherStruct; 4],
 }
 

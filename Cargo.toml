@@ -2,9 +2,14 @@
 name = "net_struct_serde"
 version = "0.1.0"
 edition = "2021"
+authors = ["jianxun-p"]
 
 [dependencies]
 serde = "1"
 heapless = "0.8.*"
 embedded-io = "0.6.*"
 net-struct-derive = {path = "net-struct-derive"}
+
+[features]
+default = []
+no_std = []

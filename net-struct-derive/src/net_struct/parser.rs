@@ -110,7 +110,7 @@ impl NetStruct {
         let field_name_str = field.name.as_str();
         let field_name = TokenStream::from_str(field_name_str).unwrap();
         let Some(vec_field) = vec_fields.get(&field.name) else {
-            return Err(DeriveErr::Custoum(format!(
+            return Err(DeriveErr::Message(format!(
                 "Unexpected error when implementing Deserialize for the vector field \"{}\" of the structure \"{}\"", 
                 &field.name, 
                 self.derive_input.ident.to_string())));
@@ -141,7 +141,7 @@ impl NetStruct {
                     SizeUnit::LENGTH => quote!(as usize),
                 };
                 Ok(quote! {
-                    .deserialize_seq::<#ty, &mut [#ty]>(&mut (*#var.as_mut_ptr()).#field_name, #var.assume_init().#len #unit)?
+                    .deserialize_seq::<#ty, &mut [#ty]>(&mut (*#var.as_mut_ptr()).#field_name, #var.assume_init_ref().#len #unit)?
                 })
             },
         }
@@ -201,7 +201,7 @@ impl NetStruct {
         let fields = self.deserialize_fields()?;
         Ok(quote! {
             impl net_struct_serde::traits::Deserialize for #struct_name {
-                fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+                fn deserialize<D>(deserializer: D) -> Result<Self, net_struct_serde::SerdeErr>
                     where D: net_struct_serde::traits::Deserializer
                 {
                     let mut #var = core::mem::MaybeUninit::<#struct_name>::uninit();

@@ -1,6 +1,5 @@
 use net_struct_derive::NetStruct;
 use net_struct_serde::traits::*;
-use serde::Serialize;
 
 #[derive(Debug, Clone, NetStruct)]
 pub(self) struct SimpleStruct {

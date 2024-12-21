@@ -1,7 +1,5 @@
-// use heapless;
 use net_struct_derive::NetStruct;
-use net_struct_serde::traits::Deserialize;
-use serde::Serialize;
+use net_struct_serde::traits::*;
 
 #[derive(Copy, Clone, Debug, NetStruct)]
 pub struct OtherStruct {

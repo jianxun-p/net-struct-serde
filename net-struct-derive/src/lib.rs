@@ -1,12 +1,13 @@
 pub(crate) mod helper;
 mod net_struct;
+mod net_enum;
+use net_enum::NetEnum;
 use net_struct::*;
 use syn::DeriveInput;
 mod err;
 
 #[cfg(test)]
 mod test;
-
 
 /// usage:
 /// ```
@@ -38,27 +39,30 @@ mod test;
 #[proc_macro_derive(NetStruct, attributes(net_struct))]
 pub fn derive_net_struct(item: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let a: DeriveInput = syn::parse(item.clone()).unwrap();
-    match a.data.clone() {
-        syn::Data::Struct(_) => {
-            let net_struct = NetStruct::from(a);
-            match net_struct.into() {
-                Ok(ts) => {
-                    // println!("{}", &ts.to_string());
-                    proc_macro::TokenStream::from(ts)
-                }
-                Err(e) => match e {
-                    err::DeriveErr::AmbigiousDeserialize(msg) => panic!(
-                        "Error: Ambigiouity with the Deserialize implementation {}",
-                        msg
-                    ),
-                    err::DeriveErr::Custoum(msg) => panic!(
-                        "Error: {}",
-                        msg
-                    ),
-                },
+    match &a.data {
+        syn::Data::Struct(_) => match NetStruct::derive_input_to_token_stream(a) {
+            Ok(ts) => {
+                // println!("{}", &ts.to_string());
+                proc_macro::TokenStream::from(ts)
             }
-        }
-        syn::Data::Union(_) => unimplemented!("No support for union typed"),
-        _ => todo!("Only supports Struct typed for now"),
+            Err(e) => panic!("{:?}", e),
+        },
+        _ => panic!("Expected a struct"),
     }
 }
+
+#[proc_macro_derive(NetEnum, attributes(net_enum))]
+pub fn derive_net_enum(item: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let a: DeriveInput = syn::parse(item.clone()).unwrap();
+    match &a.data {
+        syn::Data::Enum(_) => match NetEnum::derive_input_to_token_stream(a) {
+            Ok(ts) => {
+                // println!("{}", &ts.to_string());
+                proc_macro::TokenStream::from(ts)
+            },
+            Err(e) => panic!("{:?}", e),
+        },
+        _ => panic!("Expected a enum"),
+    }
+}
+

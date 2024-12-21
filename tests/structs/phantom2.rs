@@ -1,6 +1,5 @@
 use net_struct_derive::NetStruct;
 use net_struct_serde::traits::*;
-use serde::Serialize;
 
 #[derive(Copy, Clone, Debug, NetStruct)]
 pub struct SomePhantomStruct {

@@ -1,5 +1,7 @@
 #[derive(Debug, Clone)]
+#[allow(unused)]
 pub enum DeriveErr {
     AmbigiousDeserialize(String),
-    Custoum(String),
+    MissingDiscriminant(String),
+    Message(String),
 }

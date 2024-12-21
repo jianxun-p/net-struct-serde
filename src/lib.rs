@@ -1,14 +1,15 @@
-//! This is crate implements a `Serializer` and a `Deserializer` for network protocols structures. 
-//! It also provides derive macro for `NetStruct` which implements the necessary traits to be serialized 
+//! This is crate implements a `Serializer` and a `Deserializer` for network protocols structures.
+//! It also provides derive macro for `NetStruct` which implements the necessary traits to be serialized
 //! and deserialized into/from big-endian bytes.
-//! 
+//!
 //! # Example
 //! ```
+//! use net_struct_serde::traits::*;
+//! use net_struct_derive::NetStruct;
 //! #[derive(Debug, Clone, NetStruct)]
-//! pub(self) struct SimpleStruct {
+//! pub struct SimpleStruct {
 //!     pub x: u8,
 //!     pub y: i8,
-//!     #[net_struct(struct_len(x, len))]
 //!     pub z: i32,
 //! }
 //! const SIMPLE_STRUCT: SimpleStruct = SimpleStruct {
@@ -30,12 +31,12 @@
 //! let deserialized = SimpleStruct::deserialize(&mut deserializer).unwrap();
 //! assert_eq!(SIMPLE_STRUCT, deserialized);
 //! ```
-//! 
+//!
 //! # Field Attributes
 //! The \<ARGUMENTS\> are seperated by a comma.
 //! All field attributes are in the form `#[net_struct(<FIELD_ATTR>)]`:
 //! - `vec_len(<VECTOR_LENGTH_FIELD>, <OPTIONAL:LENGTH_UNIT>])`
-//!   - `VECTOR_LENGTH_FIELD`: a 
+//!   - `VECTOR_LENGTH_FIELD`: a
 //!   - `LENGTH_UNIT`: Length specified in the `VECTOR_LENGTH_FIELD` has a unit:
 //!     - `B` or `bytes`: in Bytes
 //!     - `bits`: in bits
@@ -49,6 +50,7 @@ mod ser;
 
 mod flavour;
 pub mod traits;
+pub use traits::{Deserialize, Deserializer, Serialize, Serializer};
 
 #[derive(Debug)]
 pub struct NetStructSerializer<'a> {

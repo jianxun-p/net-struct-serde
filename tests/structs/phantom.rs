@@ -1,6 +1,10 @@
 use net_struct_derive::NetStruct;
 use net_struct_serde::traits::*;
-use serde::Serialize;
+
+#[derive(Copy, Clone, Debug, NetStruct)]
+pub struct SomePhantomStruct {
+    arr: [u8; 64],
+}
 
 #[derive(Copy, Clone, Debug, NetStruct)]
 pub struct SomeStruct {
@@ -9,15 +13,18 @@ pub struct SomeStruct {
     pub vec1: [u16; 8],
     pub vec1_bytes: u8,
     pub field2: u8,
+    #[net_struct(phantom)]
+    pub _phantom_field: SomePhantomStruct,
 }
 
 #[test]
-fn reverse() {
+fn phantom() {
     const S: SomeStruct = SomeStruct {
         field1: 99,
         vec1: [4, 5, 6, 7, 8, 9, 10, 11],
         vec1_bytes: 6,
         field2: 7,
+        _phantom_field: SomePhantomStruct { arr: [0xff; 64] },
     };
     const CORRECT_SERIALIZED: [u8; 9] = [99, 0, 4, 0, 5, 0, 6, 6, 7];
     let mut serialized = [0u8; CORRECT_SERIALIZED.len()];

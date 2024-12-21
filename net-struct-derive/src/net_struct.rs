@@ -9,6 +9,9 @@ use quote::quote;
 use std::{collections::HashMap, rc::Rc};
 use syn::{Data, DeriveInput};
 
+const ATTR_PATH: &'static str = "net_struct";
+const STRUCT_SIZE_PATH: &'static str = "struct_len";
+
 #[derive(Clone)]
 pub(super) struct NetStruct {
     derive_input: DeriveInput,
@@ -17,12 +20,9 @@ pub(super) struct NetStruct {
 }
 
 #[derive(Clone)]
-pub(super) struct NetStructAttr {
+struct NetStructAttr {
     struct_len: Option<(Rc<NetStructField>, SizeUnit)>,
 }
-
-const ATTR_PATH: &'static str = "net_struct";
-const STRUCT_SIZE_PATH: &'static str = "struct_len";
 
 impl std::cmp::PartialEq for NetStruct {
     fn eq(&self, other: &Self) -> bool {
@@ -31,19 +31,15 @@ impl std::cmp::PartialEq for NetStruct {
 }
 impl std::cmp::Eq for NetStruct {}
 
-fn parse_attr<F: FnMut(&proc_macro2::TokenStream)>(attrs: &Vec<syn::Attribute>, mut f: F) {
-    for attr in attrs {
-        if let syn::Meta::List(meta_list) = &attr.meta {
-            assert!(
-                meta_list.path.is_ident(ATTR_PATH),
-                "Expected \"net_struct\""
-            );
-            f(&meta_list.tokens);
-        }
-    }
-}
+
 
 impl NetStruct {
+
+    pub fn derive_input_to_token_stream(di: DeriveInput) -> Result<TokenStream, DeriveErr> {
+        Self::from(di).into()
+    }
+
+
     fn find_field_from_name(&self, name: String) -> Option<Rc<NetStructField>> {
         self.fields
             .iter()
@@ -127,7 +123,7 @@ impl From<DeriveInput> for NetStruct {
                 .collect(),
             attrs: NetStructAttr { struct_len: None },
         };
-        parse_attr(&di.attrs, |tokens| {
+        parse_attr(&di.attrs, ATTR_PATH, |tokens| {
             ns.parse_attr_struct_len(tokens);
         });
         ns

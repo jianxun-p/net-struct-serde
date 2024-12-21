@@ -5,7 +5,6 @@
 //! # Example
 //! ```
 //! use net_struct_serde::{traits::*, *};
-//! use net_struct_derive::*;
 //! #[derive(Debug, Clone, Copy, PartialEq, Eq, NetEnum)]
 //! #[net_enum(repr(u8))]
 //! pub enum SimpleEnum {
@@ -57,7 +56,8 @@
 //! The \<ARGUMENTS\> are seperated by a comma.
 //! All field attributes are in the form `#[net_enum(<FIELD_ATTR>)]`:
 //! - `repr(<PRIMITIVE_INTEGER_TYPE>])`
-//!   - `PRIMITIVE_INTEGER_TYPE`: a primitive integer type that the enumeration is serialized/deserialized into/from
+//!   - `PRIMITIVE_INTEGER_TYPE`: a primitive integer type that the enumeration is serialized/deserialized into/from,
+//!     it is not nesscarily the same type as it is stored in memory (for that, `#[repr(<TYPE_IN_MEMORY>)]` is needed)
 
 mod de;
 mod err;
@@ -65,8 +65,8 @@ mod ser;
 
 mod flavour;
 pub mod traits;
+pub use net_struct_derive::{NetEnum, NetStruct};
 pub use traits::{Deserialize, Deserializer, Serialize, Serializer};
-pub use net_struct_derive::{NetStruct, NetEnum};
 
 #[derive(Debug)]
 pub struct NetStructSerializer<'a> {

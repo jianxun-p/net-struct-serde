@@ -1,6 +1,4 @@
-use net_struct_derive::NetStruct;
-use net_struct_serde::to_vec;
-use net_struct_serde::traits::*;
+use net_struct_serde::*;
 
 #[derive(Copy, Clone, Debug, NetStruct)]
 pub struct OtherStruct {

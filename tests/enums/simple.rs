@@ -1,5 +1,5 @@
-use net_struct_derive::NetEnum;
-use net_struct_serde::{traits::*, *};
+use net_struct_serde::*;
+use net_struct_serde::traits::NetEnum;
 
 #[derive(Debug, NetEnum, PartialEq, Eq, Clone, Copy)]
 #[net_enum(repr(isize))]

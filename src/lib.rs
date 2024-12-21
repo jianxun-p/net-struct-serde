@@ -91,6 +91,7 @@ pub enum SerdeErr {
 
 #[cfg(feature = "heapless")]
 /// Serializes the given input into `heapless::Vec`
+/// ```
 /// #[derive(Copy, Clone, Debug, NetStruct)]
 /// pub struct StructName {
 ///     pub field1: u16,
@@ -121,6 +122,7 @@ pub enum SerdeErr {
 ///     res.unwrap().into_array::<{CORRECT_SERIALIZED.len()}>(),
 ///     Ok(CORRECT_SERIALIZED)
 /// );
+/// ```
 pub fn to_vec<const N: usize, T>(value: &T) -> Result<heapless::Vec<u8, N>, SerdeErr>
 where
     T: Serialize,

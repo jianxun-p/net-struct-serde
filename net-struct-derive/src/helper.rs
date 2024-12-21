@@ -1,6 +1,21 @@
 use proc_macro2::token_stream::IntoIter;
 use std::iter::Peekable;
 
+pub(crate) fn parse_attr<F>(attrs: &Vec<syn::Attribute>, attr_path: &'static str, mut f: F)
+where
+    F: FnMut(&proc_macro2::TokenStream),
+{
+    for attr in attrs {
+        if let syn::Meta::List(meta_list) = &attr.meta {
+            assert!(
+                meta_list.path.is_ident(attr_path),
+                "Expected \"net_struct\""
+            );
+            f(&meta_list.tokens);
+        }
+    }
+}
+
 pub(crate) fn expect_ident<I>(it: &mut I, expect_msg: &str) -> String
 where
     I: Iterator<Item = proc_macro2::TokenTree>,

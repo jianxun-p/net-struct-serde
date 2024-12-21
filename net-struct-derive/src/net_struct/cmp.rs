@@ -26,9 +26,9 @@ impl NetStruct {
                 },
                 NetStructFieldType::Vec { ty, capacity: _, } => {
                     let Some(v_f) = all_vec.get(&f.name) else {
-                        return Err(DeriveErr::Custoum(format!(
+                        return Err(DeriveErr::Message(format!(
                             "Unexpected error when implementing core::cmp::Eq for the vector field \"{}\" of the structure \"{}\"", 
-                            &f.name, 
+                            &f.name,
                             self.derive_input.ident.to_string())));
                     };
                     let len_field = TokenStream::from_str(v_f.len_field.name.as_str()).unwrap();

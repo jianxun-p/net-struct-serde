@@ -9,9 +9,9 @@ license = "MIT"
 [dependencies]
 serde = "1"
 heapless = "0.8.*"
-embedded-io = "0.6.*"
 net-struct-derive = {path = "net-struct-derive"}
 
 [features]
-default = []
+default = ["no_std", "heapless"]
 no_std = []
+heapless = []

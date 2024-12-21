@@ -30,15 +30,13 @@ fn simple() {
     let mut serialized = [0u8; CORRECT_SERIALIZED.len()];
     let mut serializer = net_struct_serde::NetStructSerializer::new(&mut serialized);
     SIMPLE_STRUCT.serialize(&mut serializer).unwrap();
-    let serialized_size = serializer.finalize();
-    assert_eq!(
-        &serialized[..serialized_size],
-        &CORRECT_SERIALIZED[..serialized_size]
-    );
+    assert_eq!(serializer.finalize(), CORRECT_SERIALIZED.len());
+    assert_eq!(serialized, CORRECT_SERIALIZED);
     println!("serialized: {serialized:?}");
     let mut deserializer =
         net_struct_serde::NetStructDeserializer::new(CORRECT_SERIALIZED.as_slice());
     let deserialized = SimpleStruct::deserialize(&mut deserializer).unwrap();
     assert_eq!(SIMPLE_STRUCT, deserialized);
-    dbg!(deserialized);
+    assert_eq!(deserializer.finalize(), CORRECT_SERIALIZED.len());
+    println!("{:?}", deserialized);
 }

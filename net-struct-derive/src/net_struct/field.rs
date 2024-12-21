@@ -92,13 +92,16 @@ impl From<&syn::Field> for NetStructField {
                 _ => unimplemented!("only support Array(vector) or Path typed fields"),
             },
         };
-        parse_attr(&field.attrs, |ts| s.parse_attr_vec_len(ts));
-        parse_attr(&field.attrs, |ts| s.parse_attr_phantom(ts));
+        parse_attr(&field.attrs, ATTR_PATH, |ts| s.parse_attr_vec_len(ts));
+        parse_attr(&field.attrs, ATTR_PATH, |ts| s.parse_attr_phantom(ts));
         if s.is_vec() {
             let NetStructFieldType::Arr { ty, capacity } = s.ty else {
                 panic!("Since this field is a vector, expected type to have an initial value of NetStructFieldType::Arr")
             };
-            s.ty = NetStructFieldType::Vec { ty: ty, capacity: capacity }
+            s.ty = NetStructFieldType::Vec {
+                ty: ty,
+                capacity: capacity,
+            }
         }
         s
     }
@@ -140,9 +143,8 @@ impl NetStructField {
                 }
             }
             self.net_struct_attr.push(FieldAttr::Phantom);
-        }        
+        }
     }
-
 
     fn parse_attr_vec_len(&mut self, ts: &TokenStream) {
         let vec_len_attr = String::from(VEC_LEN_ATTR_PATH);
@@ -177,7 +179,4 @@ impl NetStructField {
             });
         }
     }
-
-
-
 }

@@ -30,7 +30,7 @@ macro_rules! deserialize_primty {
             buf: buf.as_slice(),
         };
         *$v = <$primty as Deserialize>::deserialize(&mut nsd)?;
-        return match nsd.finalize()? == SIZE {
+        return match nsd.finalize() == SIZE {
             true => Ok($s),
             false => Err(SerdeErr::ParseFailed),
         }
@@ -38,12 +38,10 @@ macro_rules! deserialize_primty {
 }
 
 impl Deserializer for &mut NetStructDeserializer<'_> {
-    type Error = SerdeErr;
-
     type F = NoFlavour<Self>;
 
     #[inline]
-    fn expect(self, len: usize) -> Result<Self, <Self as Deserializer>::Error> {
+    fn expect(self, len: usize) -> Result<Self, SerdeErr> {
         match self.buf.len() >= len {
             true => Ok(self),
             false => Err(SerdeErr::Eof),
@@ -51,7 +49,7 @@ impl Deserializer for &mut NetStructDeserializer<'_> {
     }
 
     #[inline]
-    fn take<B: AsMut<[u8]>>(mut self, buf: &mut B) -> Result<Self, <Self as Deserializer>::Error> {
+    fn take<B: AsMut<[u8]>>(mut self, buf: &mut B) -> Result<Self, SerdeErr> {
         let b = buf.as_mut();
         self = self.expect(b.len())?;
         let (b1, b2) = match self.dir {
@@ -67,7 +65,7 @@ impl Deserializer for &mut NetStructDeserializer<'_> {
     }
 
     #[inline]
-    fn truncate(self, len: usize) -> Result<Self, Self::Error> {
+    fn truncate(self, len: usize) -> Result<Self, SerdeErr> {
         match self.buf.len() >= len {
             true => {
                 self.buf = match self.dir {
@@ -81,7 +79,7 @@ impl Deserializer for &mut NetStructDeserializer<'_> {
     }
 
     #[inline]
-    fn skip(mut self, len: usize) -> Result<Self, <Self as Deserializer>::Error> {
+    fn skip(mut self, len: usize) -> Result<Self, SerdeErr> {
         self = self.expect(len)?;
         self.buf = match self.dir {
             true => &self.buf[len..],
@@ -92,18 +90,18 @@ impl Deserializer for &mut NetStructDeserializer<'_> {
     }
 
     #[inline]
-    fn reverse(self) -> Result<Self, <Self as Deserializer>::Error> {
+    fn reverse(self) -> Result<Self, SerdeErr> {
         self.dir = !self.dir;
         Ok(self)
     }
 
     #[inline]
-    fn finalize(self) -> Result<usize, <Self as Deserializer>::Error> {
-        Ok(self.init_count - self.buf.len())
+    fn finalize(self) -> usize {
+        self.init_count - self.buf.len()
     }
 
     #[inline]
-    fn deserialize_bool(mut self, v: &mut bool) -> Result<Self, <Self as Deserializer>::Error> {
+    fn deserialize_bool(mut self, v: &mut bool) -> Result<Self, SerdeErr> {
         const SIZE: usize = core::mem::size_of::<bool>();
         let mut arr = [0u8; SIZE];
         self = self.take(&mut arr)?;
@@ -112,52 +110,52 @@ impl Deserializer for &mut NetStructDeserializer<'_> {
     }
 
     #[inline]
-    fn deserialize_i8(mut self, v: &mut i8) -> Result<Self, <Self as Deserializer>::Error> {
+    fn deserialize_i8(mut self, v: &mut i8) -> Result<Self, SerdeErr> {
         deserialize_primty!(self, i8, v);
     }
 
     #[inline]
-    fn deserialize_i16(mut self, v: &mut i16) -> Result<Self, <Self as Deserializer>::Error> {
+    fn deserialize_i16(mut self, v: &mut i16) -> Result<Self, SerdeErr> {
         deserialize_primty!(self, i16, v);
     }
 
     #[inline]
-    fn deserialize_i32(mut self, v: &mut i32) -> Result<Self, <Self as Deserializer>::Error> {
+    fn deserialize_i32(mut self, v: &mut i32) -> Result<Self, SerdeErr> {
         deserialize_primty!(self, i32, v);
     }
 
     #[inline]
-    fn deserialize_i64(mut self, v: &mut i64) -> Result<Self, <Self as Deserializer>::Error> {
+    fn deserialize_i64(mut self, v: &mut i64) -> Result<Self, SerdeErr> {
         deserialize_primty!(self, i64, v);
     }
 
     #[inline]
-    fn deserialize_u8(mut self, v: &mut u8) -> Result<Self, <Self as Deserializer>::Error> {
+    fn deserialize_u8(mut self, v: &mut u8) -> Result<Self, SerdeErr> {
         deserialize_primty!(self, u8, v);
     }
 
     #[inline]
-    fn deserialize_u16(mut self, v: &mut u16) -> Result<Self, <Self as Deserializer>::Error> {
+    fn deserialize_u16(mut self, v: &mut u16) -> Result<Self, SerdeErr> {
         deserialize_primty!(self, u16, v);
     }
 
     #[inline]
-    fn deserialize_u32(mut self, v: &mut u32) -> Result<Self, <Self as Deserializer>::Error> {
+    fn deserialize_u32(mut self, v: &mut u32) -> Result<Self, SerdeErr> {
         deserialize_primty!(self, u32, v);
     }
 
     #[inline]
-    fn deserialize_u64(mut self, v: &mut u64) -> Result<Self, <Self as Deserializer>::Error> {
+    fn deserialize_u64(mut self, v: &mut u64) -> Result<Self, SerdeErr> {
         deserialize_primty!(self, u64, v);
     }
 
     #[inline]
-    fn deserialize_f32(mut self, v: &mut f32) -> Result<Self, <Self as Deserializer>::Error> {
+    fn deserialize_f32(mut self, v: &mut f32) -> Result<Self, SerdeErr> {
         deserialize_primty!(self, f32, v);
     }
 
     #[inline]
-    fn deserialize_f64(mut self, v: &mut f64) -> Result<Self, <Self as Deserializer>::Error> {
+    fn deserialize_f64(mut self, v: &mut f64) -> Result<Self, SerdeErr> {
         deserialize_primty!(self, f64, v);
     }
 
@@ -166,7 +164,7 @@ impl Deserializer for &mut NetStructDeserializer<'_> {
         self,
         field: &mut E,
         _field_name: &'static str,
-    ) -> Result<Self, Self::Error> {
+    ) -> Result<Self, SerdeErr> {
         *field = <E as Deserialize>::deserialize(&mut *self)?;
         Ok(self)
     }
@@ -175,7 +173,7 @@ impl Deserializer for &mut NetStructDeserializer<'_> {
         self,
         mut s: S,
         len: usize,
-    ) -> Result<Self, <Self as Deserializer>::Error> {
+    ) -> Result<Self, SerdeErr> {
         let arr = s.as_mut();
         if arr.len() < len {
             return Err(SerdeErr::Eof);
@@ -200,7 +198,7 @@ impl Deserializer for &mut NetStructDeserializer<'_> {
         mut s: S,
         len: &mut usize,
         len_adj: impl Fn(usize) -> usize,
-    ) -> Result<Self, Self::Error> {
+    ) -> Result<Self, SerdeErr> {
         *len = 0;
         let arr = s.as_mut();
         while arr.len() >= *len + 1 {
@@ -216,10 +214,7 @@ impl Deserializer for &mut NetStructDeserializer<'_> {
     }
 
     #[inline]
-    fn deserialize_variant<V: Deserialize>(
-        self,
-        v: &mut V,
-    ) -> Result<Self, <Self as Deserializer>::Error> {
+    fn deserialize_variant<V: Deserialize>(self, v: &mut V) -> Result<Self, SerdeErr> {
         *v = V::deserialize(&mut *self)?;
         Ok(self)
     }
@@ -233,13 +228,13 @@ impl<'a, 'b: 'a> StructDeserializer<&'a mut NetStructDeserializer<'b>>
         self,
         field: &mut E,
         _field_name: &'static str,
-    ) -> Result<Self, <Self as Deserializer>::Error> {
+    ) -> Result<Self, SerdeErr> {
         *field = <E as Deserialize>::deserialize(&mut *self)?;
         Ok(self)
     }
 
     #[inline]
-    fn struct_end(self) -> Result<Self, <Self as Deserializer>::Error> {
+    fn struct_end(self) -> Result<Self, SerdeErr> {
         Ok(self)
     }
 }
@@ -247,7 +242,7 @@ impl<'a, 'b: 'a> StructDeserializer<&'a mut NetStructDeserializer<'b>>
 macro_rules! impl_deserialize_for_primty {
     ($primty:ty) => {
         impl Deserialize for $primty {
-            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+            fn deserialize<D>(deserializer: D) -> Result<Self, SerdeErr>
             where
                 D: Deserializer,
             {
@@ -267,15 +262,19 @@ impl_deserialize_for_primty!(i8);
 impl_deserialize_for_primty!(i16);
 impl_deserialize_for_primty!(i32);
 impl_deserialize_for_primty!(i64);
+impl_deserialize_for_primty!(i128);
+impl_deserialize_for_primty!(isize);
 impl_deserialize_for_primty!(u8);
 impl_deserialize_for_primty!(u16);
 impl_deserialize_for_primty!(u32);
 impl_deserialize_for_primty!(u64);
+impl_deserialize_for_primty!(u128);
+impl_deserialize_for_primty!(usize);
 impl_deserialize_for_primty!(f32);
 impl_deserialize_for_primty!(f64);
 
 impl<T: Deserialize> Deserialize for Option<T> {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    fn deserialize<D>(deserializer: D) -> Result<Self, SerdeErr>
     where
         D: Deserializer,
     {
@@ -307,7 +306,7 @@ mod test {
             y: i16,
         }
         impl Deserialize for St {
-            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+            fn deserialize<D>(deserializer: D) -> Result<Self, SerdeErr>
             where
                 D: Deserializer,
             {
@@ -333,7 +332,7 @@ mod test {
             arr: [i8; 8],
         }
         impl Deserialize for St {
-            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+            fn deserialize<D>(deserializer: D) -> Result<Self, SerdeErr>
             where
                 D: Deserializer,
             {
@@ -370,7 +369,7 @@ mod test {
             l: i32,
         }
         impl Deserialize for St {
-            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+            fn deserialize<D>(deserializer: D) -> Result<Self, SerdeErr>
             where
                 D: Deserializer,
             {
@@ -407,7 +406,7 @@ mod test {
             arr: [i32; 3],
         }
         impl Deserialize for St {
-            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+            fn deserialize<D>(deserializer: D) -> Result<Self, SerdeErr>
             where
                 D: Deserializer,
             {

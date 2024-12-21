@@ -1,15 +1,15 @@
 use std::rc::Rc;
 
+use crate::{err::DeriveErr, helper::*};
+use proc_macro2::*;
 use quote::quote;
 use syn::{Data, DeriveInput};
 use variants::NetEnumVariants;
-use crate::{err::DeriveErr, helper::*};
-use proc_macro2::*;
-mod variants;
-mod impl_into;
-mod impl_tryfrom;
-mod impl_ser;
 mod impl_de;
+mod impl_into;
+mod impl_ser;
+mod impl_tryfrom;
+mod variants;
 
 const ATTR_PATH: &'static str = "net_enum";
 const DISCRIMINANT_TYPE_PATH: &'static str = "repr";
@@ -26,7 +26,6 @@ struct NetEnumAttr {
     repr: TokenStream,
 }
 
-
 impl From<DeriveInput> for NetEnum {
     fn from(di: DeriveInput) -> Self {
         let Data::Enum(ds) = &di.data else {
@@ -39,7 +38,9 @@ impl From<DeriveInput> for NetEnum {
                 .iter()
                 .map(|f| Rc::new(NetEnumVariants::from(f)))
                 .collect(),
-            attrs: NetEnumAttr { repr: TokenStream::new() },
+            attrs: NetEnumAttr {
+                repr: TokenStream::new(),
+            },
         };
         parse_attr(&di.attrs, ATTR_PATH, |tokens| {
             ns.parse_attr_discriminant_size(tokens);
@@ -49,25 +50,25 @@ impl From<DeriveInput> for NetEnum {
 }
 
 impl NetEnum {
-
     pub fn derive_input_to_token_stream(di: DeriveInput) -> Result<TokenStream, DeriveErr> {
         Self::from(di).into()
     }
 
     fn parse_attr_discriminant_size(&mut self, ts: &TokenStream) {
         let expect_attr_ident_msg = format!(
-            "Expected identifier \"{}\" for the type for discriminant", 
+            "Expected identifier \"{}\" for the type for discriminant",
             DISCRIMINANT_TYPE_PATH
         );
         let expect_group_msg = format!(
             "Expected parenthesis immediately after the identifier \"{}\" for the type for discriminant", 
             DISCRIMINANT_TYPE_PATH
         );
-        let mut it = ts.clone().into_iter().peekable();        
+        let mut it = ts.clone().into_iter().peekable();
         assert_eq!(
-            String::from(DISCRIMINANT_TYPE_PATH), 
-            expect_ident(&mut it, expect_attr_ident_msg.as_str()), 
-            "{}", expect_attr_ident_msg
+            String::from(DISCRIMINANT_TYPE_PATH),
+            expect_ident(&mut it, expect_attr_ident_msg.as_str()),
+            "{}",
+            expect_attr_ident_msg
         );
         self.attrs.repr = expect_group(&mut it, Delimiter::Parenthesis, expect_group_msg.as_str());
     }

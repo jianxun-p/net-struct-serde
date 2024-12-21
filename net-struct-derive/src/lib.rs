@@ -1,6 +1,6 @@
 pub(crate) mod helper;
-mod net_struct;
 mod net_enum;
+mod net_struct;
 use net_enum::*;
 use net_struct::*;
 use syn::DeriveInput;
@@ -51,7 +51,6 @@ pub fn derive_net_struct(item: proc_macro::TokenStream) -> proc_macro::TokenStre
     }
 }
 
-
 /// usage:
 /// ```
 ///  #[derive(Debug, NetEnum, PartialEq, Eq, Clone, Copy)]
@@ -74,10 +73,9 @@ pub fn derive_net_enum(item: proc_macro::TokenStream) -> proc_macro::TokenStream
             Ok(ts) => {
                 // println!("{}", &ts.to_string());
                 proc_macro::TokenStream::from(ts)
-            },
+            }
             Err(e) => panic!("{:?}", e),
         },
         _ => panic!("Expected a enum"),
     }
 }
-

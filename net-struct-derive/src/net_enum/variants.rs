@@ -14,5 +14,3 @@ impl From<&syn::Variant> for NetEnumVariants {
         }
     }
 }
-
-

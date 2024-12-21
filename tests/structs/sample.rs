@@ -1,6 +1,6 @@
 use net_struct_derive::NetStruct;
-use net_struct_serde::traits::*;
 use net_struct_serde::to_vec;
+use net_struct_serde::traits::*;
 
 #[derive(Copy, Clone, Debug, NetStruct)]
 pub struct OtherStruct {
@@ -51,7 +51,10 @@ fn sample() {
     let serialized_size = serializer.finalize();
     assert_eq!(serialized_size, CORRECT_SERIALIZED.len());
     assert_eq!(serialized, CORRECT_SERIALIZED);
-    assert_eq!(to_vec::<32, StructName>(&S).unwrap().into_array::<22>(), Ok(CORRECT_SERIALIZED));
+    assert_eq!(
+        to_vec::<32, StructName>(&S).unwrap().into_array::<22>(),
+        Ok(CORRECT_SERIALIZED)
+    );
     println!("serialized(DEC): {:?}", &serialized[..serialized_size]);
     println!("serialized(HEX): {:02x?}", &serialized[..serialized_size]);
     let mut deserializer = net_struct_serde::NetStructDeserializer::new(&CORRECT_SERIALIZED);

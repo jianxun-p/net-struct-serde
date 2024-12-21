@@ -31,14 +31,10 @@ impl std::cmp::PartialEq for NetStruct {
 }
 impl std::cmp::Eq for NetStruct {}
 
-
-
 impl NetStruct {
-
     pub fn derive_input_to_token_stream(di: DeriveInput) -> Result<TokenStream, DeriveErr> {
         Self::from(di).into()
     }
-
 
     fn find_field_from_name(&self, name: String) -> Option<Rc<NetStructField>> {
         self.fields

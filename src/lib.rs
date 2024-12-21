@@ -113,16 +113,17 @@ pub enum SerdeErr {
 ///     ],
 /// };
 /// const CORRECT_SERIALIZED: [u8; 18] = [
-///     0, 99, 1, 2, 3, 4, 6, 0, 4, 0, 5, 0, 6, 0, 0, 0, 8, 73, 
+///     0, 99, 1, 2, 3, 4, 6, 0, 4, 0, 5, 0, 6, 0, 0, 0, 8, 73,
 /// ];
 /// let res = to_vec::<32, StructName>(&S);
 /// assert!(res.is_ok());
 /// assert_eq!(
-///     res.unwrap().into_array::<{CORRECT_SERIALIZED.len()}>(), 
+///     res.unwrap().into_array::<{CORRECT_SERIALIZED.len()}>(),
 ///     Ok(CORRECT_SERIALIZED)
 /// );
-pub fn to_vec<const N: usize, T>(value: &T) -> Result<heapless::Vec<u8, N>, SerdeErr> 
-    where T: Serialize
+pub fn to_vec<const N: usize, T>(value: &T) -> Result<heapless::Vec<u8, N>, SerdeErr>
+where
+    T: Serialize,
 {
     use heapless::Vec;
     let mut v = Vec::new();
@@ -134,7 +135,7 @@ pub fn to_vec<const N: usize, T>(value: &T) -> Result<heapless::Vec<u8, N>, Serd
         v.set_len(serialized_len);
     }
     Ok(v)
-} 
+}
 
 #[inline]
 /// Deserialize from the input bytes
@@ -142,5 +143,3 @@ pub fn from_slice<T: Deserialize>(data: impl AsRef<[u8]>) -> Result<T, SerdeErr>
     let mut deserializer = NetStructDeserializer::new(data.as_ref());
     T::deserialize(&mut deserializer)
 }
-
-

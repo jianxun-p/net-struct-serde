@@ -5,9 +5,7 @@ use crate::err::DeriveErr;
 
 use super::NetEnum;
 
-
 impl NetEnum {
-
     pub(super) fn impl_into(&self) -> Result<TokenStream, DeriveErr> {
         let ty = &self.attrs.repr;
         let enum_name = &self.derive_input.ident;
@@ -21,4 +19,3 @@ impl NetEnum {
         })
     }
 }
-

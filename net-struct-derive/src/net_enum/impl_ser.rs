@@ -5,7 +5,6 @@ use quote::quote;
 
 use super::NetEnum;
 
-
 impl NetEnum {
     pub(super) fn impl_serialize(&self) -> Result<TokenStream, DeriveErr> {
         let enum_name = &self.derive_input.ident;
@@ -21,4 +20,3 @@ impl NetEnum {
         })
     }
 }
-

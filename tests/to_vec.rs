@@ -1,5 +1,5 @@
-use net_struct_serde::*;
 use net_struct_derive::NetStruct;
+use net_struct_serde::*;
 
 #[derive(Copy, Clone, Debug, NetStruct)]
 pub struct StructName {
@@ -25,13 +25,11 @@ fn test_to_vec() {
             73, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75,
         ],
     };
-    const CORRECT_SERIALIZED: [u8; 18] = [
-        0, 99, 1, 2, 3, 4, 6, 0, 4, 0, 5, 0, 6, 0, 0, 0, 8, 73, 
-    ];
+    const CORRECT_SERIALIZED: [u8; 18] = [0, 99, 1, 2, 3, 4, 6, 0, 4, 0, 5, 0, 6, 0, 0, 0, 8, 73];
     let res = to_vec::<32, StructName>(&S);
     assert!(res.is_ok());
     assert_eq!(
-        res.unwrap().into_array::<{CORRECT_SERIALIZED.len()}>(), 
+        res.unwrap().into_array::<{ CORRECT_SERIALIZED.len() }>(),
         Ok(CORRECT_SERIALIZED)
     );
 }

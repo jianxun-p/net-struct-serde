@@ -1,5 +1,6 @@
 use net_struct_derive::NetStruct;
 use net_struct_serde::traits::*;
+use net_struct_serde::to_vec;
 
 #[derive(Copy, Clone, Debug, NetStruct)]
 pub struct OtherStruct {
@@ -41,19 +42,21 @@ fn sample() {
             OtherStruct { x: 37, y: 51 },
         ],
     };
-    const CORRECT_SERIALIZED: [u8; 24] = [
-        99, 1, 2, 3, 4, 6, 0, 4, 0, 5, 0, 6, 0, 0, 0, 8, 73, 2, 11, 13, 17, 19, 0, 0,
+    const CORRECT_SERIALIZED: [u8; 22] = [
+        99, 1, 2, 3, 4, 6, 0, 4, 0, 5, 0, 6, 0, 0, 0, 8, 73, 2, 11, 13, 17, 19,
     ];
     let mut serialized = [0u8; CORRECT_SERIALIZED.len()];
     let mut serializer = net_struct_serde::NetStructSerializer::new(&mut serialized);
     S.serialize(&mut serializer).unwrap();
     let serialized_size = serializer.finalize();
+    assert_eq!(serialized_size, CORRECT_SERIALIZED.len());
     assert_eq!(serialized, CORRECT_SERIALIZED);
+    assert_eq!(to_vec::<32, StructName>(&S).unwrap().into_array::<22>(), Ok(CORRECT_SERIALIZED));
     println!("serialized(DEC): {:?}", &serialized[..serialized_size]);
     println!("serialized(HEX): {:02x?}", &serialized[..serialized_size]);
-
     let mut deserializer = net_struct_serde::NetStructDeserializer::new(&CORRECT_SERIALIZED);
     let deserialized = StructName::deserialize(&mut deserializer).unwrap();
     assert_eq!(S, deserialized);
-    dbg!(deserialized);
+    assert_eq!(deserializer.finalize(), CORRECT_SERIALIZED.len());
+    println!("{:?}", deserialized);
 }

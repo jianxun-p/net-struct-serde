@@ -39,7 +39,7 @@ pub trait Deserializer: Sized {
     fn truncate(self, len: usize) -> Result<Self, SerdeErr>;
 
     /// returns the number of bytes deserialized
-    fn finalize(self) -> Result<usize, SerdeErr>;
+    fn finalize(self) -> usize;
 
     fn deserialize_bool(self, v: &mut bool) -> Result<Self, SerdeErr>;
 

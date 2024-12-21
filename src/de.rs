@@ -30,7 +30,7 @@ macro_rules! deserialize_primty {
             buf: buf.as_slice(),
         };
         *$v = <$primty as Deserialize>::deserialize(&mut nsd)?;
-        return match nsd.finalize()? == SIZE {
+        return match nsd.finalize() == SIZE {
             true => Ok($s),
             false => Err(SerdeErr::ParseFailed),
         }
@@ -96,8 +96,8 @@ impl Deserializer for &mut NetStructDeserializer<'_> {
     }
 
     #[inline]
-    fn finalize(self) -> Result<usize, SerdeErr> {
-        Ok(self.init_count - self.buf.len())
+    fn finalize(self) -> usize {
+        self.init_count - self.buf.len()
     }
 
     #[inline]

@@ -29,12 +29,13 @@ fn phantom2() {
     let mut serializer = net_struct_serde::NetStructSerializer::new(&mut serialized);
     S.serialize(&mut serializer).unwrap();
     let serialized_size = serializer.finalize();
+    assert_eq!(serialized_size, CORRECT_SERIALIZED.len());
     assert_eq!(serialized, CORRECT_SERIALIZED);
     println!("serialized(DEC): {:?}", &serialized[..serialized_size]);
     println!("serialized(HEX): {:02x?}", &serialized[..serialized_size]);
-
     let mut deserializer = net_struct_serde::NetStructDeserializer::new(&CORRECT_SERIALIZED);
     let deserialized = SomeStruct::deserialize(&mut deserializer).unwrap();
     assert_eq!(S, deserialized);
-    dbg!(deserialized);
+    assert_eq!(deserializer.finalize(), CORRECT_SERIALIZED.len());
+    println!("{:?}", deserialized);
 }

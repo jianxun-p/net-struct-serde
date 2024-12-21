@@ -35,4 +35,6 @@ fn simple() {
     assert_eq!(B_BYTES, serialized_b);
     assert_eq!(Ok(A), TestEnum::deserialize(&mut a_deserializer));
     assert_eq!(Ok(B), TestEnum::deserialize(&mut b_deserializer));
+    assert_eq!(A_BYTES.len(), a_deserializer.finalize());
+    assert_eq!(B_BYTES.len(), b_deserializer.finalize());
 }

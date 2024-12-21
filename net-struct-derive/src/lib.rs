@@ -1,7 +1,7 @@
 pub(crate) mod helper;
 mod net_struct;
 mod net_enum;
-use net_enum::NetEnum;
+use net_enum::*;
 use net_struct::*;
 use syn::DeriveInput;
 mod err;
@@ -31,10 +31,10 @@ mod test;
 /// }
 /// ```
 /// Creates an implementation of the following traits for the attached structure:
-/// - `NetStruct`
+/// - `net_struct_serde::traits::NetStruct`
 /// - `serde::Serialize`
 /// - `net_struct_serde::traits::Deserialize`
-///   - `Sized`
+///   - `Sized`::
 /// - `core::cmp::Eq`
 #[proc_macro_derive(NetStruct, attributes(net_struct))]
 pub fn derive_net_struct(item: proc_macro::TokenStream) -> proc_macro::TokenStream {
@@ -51,6 +51,21 @@ pub fn derive_net_struct(item: proc_macro::TokenStream) -> proc_macro::TokenStre
     }
 }
 
+
+/// usage:
+/// ```
+///  #[derive(Debug, NetEnum, PartialEq, Eq, Clone, Copy)]
+/// #[net_enum(repr(isize))]
+/// enum TestEnum {
+///     VarA = 0,
+///     VarB = 10,
+/// }
+/// ```
+/// Creates an implementation of the following traits for the attached structure:
+/// - `net_struct_serde::traits::NetEnum`
+/// - `serde::Serialize`
+/// - `net_struct_serde::traits::Deserialize`
+///   - `Sized`
 #[proc_macro_derive(NetEnum, attributes(net_enum))]
 pub fn derive_net_enum(item: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let a: DeriveInput = syn::parse(item.clone()).unwrap();

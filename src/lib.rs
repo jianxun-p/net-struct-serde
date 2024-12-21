@@ -66,6 +66,7 @@ mod ser;
 mod flavour;
 pub mod traits;
 pub use traits::{Deserialize, Deserializer, Serialize, Serializer};
+pub use net_struct_derive::{NetStruct, NetEnum};
 
 #[derive(Debug)]
 pub struct NetStructSerializer<'a> {
@@ -92,6 +93,7 @@ pub enum SerdeErr {
 #[cfg(feature = "heapless")]
 /// Serializes the given input into `heapless::Vec`
 /// ```
+/// use net_struct_serde::*;
 /// #[derive(Copy, Clone, Debug, NetStruct)]
 /// pub struct StructName {
 ///     pub field1: u16,

@@ -10,9 +10,9 @@ impl NetEnum {
         let enum_name = &self.derive_input.ident;
         let ty = &self.attrs.repr;
         Ok(quote! {
-            impl serde::Serialize for #enum_name {
+            impl net_struct_serde::traits::Serialize for #enum_name {
                 fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-                    where S: serde::Serializer
+                    where S: net_struct_serde::traits::Serializer
                 {
                     Into::<#ty>::into(self.clone()).serialize(serializer)
                 }

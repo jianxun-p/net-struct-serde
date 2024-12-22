@@ -7,11 +7,9 @@ where
 {
     for attr in attrs {
         if let syn::Meta::List(meta_list) = &attr.meta {
-            assert!(
-                meta_list.path.is_ident(attr_path),
-                "Expected \"net_struct\""
-            );
-            f(&meta_list.tokens);
+            if meta_list.path.is_ident(attr_path) {
+                f(&meta_list.tokens);
+            }
         }
     }
 }

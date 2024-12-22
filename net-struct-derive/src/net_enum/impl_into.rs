@@ -16,6 +16,12 @@ impl NetEnum {
                     self as #ty
                 }
             }
+            impl #enum_name {
+                #[inline]
+                pub const fn const_into(self) -> #ty {
+                    self as #ty
+                }
+            }
         })
     }
 }

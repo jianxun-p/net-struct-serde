@@ -39,6 +39,14 @@ impl NetEnum {
                     }
                 }
             }
+            impl #enum_name {
+                pub const fn const_try_from(value: #ty) -> Result<Self, net_struct_serde::SerdeErr> {
+                    match value {
+                        #variants
+                        _ => Err(net_struct_serde::SerdeErr::ParseFailed)
+                    }
+                }
+            }
         })
     }
 }

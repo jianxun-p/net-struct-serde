@@ -72,7 +72,7 @@ pub fn derive_net_enum(item: proc_macro::TokenStream) -> proc_macro::TokenStream
     match &a.data {
         syn::Data::Enum(_) => match NetEnum::derive_input_to_token_stream(a) {
             Ok(ts) => {
-                // println!("{}", &ts.to_string());
+                // println!("{}", &ts.to_strincag());
                 proc_macro::TokenStream::from(ts)
             }
             Err(e) => panic!("{:?}", e),

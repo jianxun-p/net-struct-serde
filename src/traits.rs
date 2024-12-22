@@ -102,11 +102,11 @@ pub trait Deserialize: Sized {
         D: Deserializer;
 }
 
-/// `Serialize`` and `Deserialize`` for network protocols structures.
-pub trait NetStruct: serde::ser::Serialize + crate::traits::Deserialize + core::cmp::Eq {}
+/// `Serialize` and `Deserialize` for network protocols structures.
+pub trait NetStruct: crate::traits::Serialize + crate::traits::Deserialize + core::cmp::Eq {}
 
-/// `Serialize`` and `Deserialize`` for network protocols enumerations.
+/// `Serialize` and `Deserialize` for network protocols enumerations.
 pub trait NetEnum:
-    Clone + serde::ser::Serialize + crate::traits::Deserialize + core::cmp::Eq
+    Clone + crate::traits::Serialize + crate::traits::Deserialize + core::cmp::Eq
 {
 }

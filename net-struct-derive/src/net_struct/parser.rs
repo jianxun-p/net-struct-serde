@@ -93,11 +93,12 @@ impl NetStruct {
     const UNINIT_STRUCT_VAR: &'static str = "s";
 
     fn truncate_size(&self) -> TokenStream {
+        let var = TokenStream::from_str(Self::UNINIT_STRUCT_VAR).unwrap();
         if let Some((ref f, unit)) = self.attrs.struct_len {
             let field_name = TokenStream::from_str(f.name.as_str()).unwrap();
             match unit {
-                SizeUnit::BITS => quote!(.truncate(#field_name as usize / 8)?),
-                SizeUnit::BYTES => quote!(.truncate(#field_name as usize)?),
+                SizeUnit::BITS => quote!(.truncate(#var.assume_init_ref().#field_name as usize / 8)?),
+                SizeUnit::BYTES => quote!(.truncate(#var.assume_init_ref().#field_name as usize)?),
                 SizeUnit::LENGTH => unreachable!(),
             }
         } else {

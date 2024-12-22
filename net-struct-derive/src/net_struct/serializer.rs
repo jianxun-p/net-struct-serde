@@ -51,9 +51,9 @@ impl NetStruct {
         let struct_name = &self.derive_input.ident;
         let num_fields = self.fields.len();
         Ok(quote! {
-            impl serde::Serialize for #struct_name {
+            impl net_struct_serde::traits::Serialize for #struct_name {
                 fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-                    where S: serde::Serializer
+                    where S: net_struct_serde::traits::Serializer
                 {
                     use serde::ser::SerializeTuple;
                     let mut #var = serializer.serialize_tuple(#num_fields)?;
